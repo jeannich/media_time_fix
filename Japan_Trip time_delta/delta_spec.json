@@ -1,0 +1,29 @@
+{
+  "cameras": {
+    "KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "-01:00:10"
+    },
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP"
+    },
+    "DSC-T1": {
+      "owner": "CJ"
+    },
+    "CYBERSHOT": {
+      "owner": "Naho"
+    },
+    "C990Z,D490Z": {
+      "owner": "unknown"
+    },
+    "Canon EOS D30": {
+      "owner": "unknown"
+    },
+    "DMC-LC33": {
+      "owner": "unknown"
+    },
+    "FinePix4700Z": {
+      "owner": "unknown"
+    }
+  }
+}

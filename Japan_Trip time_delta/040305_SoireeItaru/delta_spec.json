@@ -1,0 +1,56 @@
+{
+  "cameras": {
+    "KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:35:47"
+    },
+    "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom vidéo",
+      "delta": "+00:35:47"
+    },
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP",
+      "delta": "+07:57:44"
+    },
+    "CanonMVI01": {
+      "owner": "JP vidéo",
+      "delta": "+07:57:44"
+    },
+    "DSC-T1": {
+      "owner": "CJ",
+      "delta": "+00:00:00"
+    },
+    "CYBERSHOT": {
+      "owner": "Naho",
+      "delta": "-00:03:00"
+    },
+    "C990Z,D490Z": {
+      "owner": "unknown",
+      "delta": "-00:04:00"
+    },
+    "Canon EOS D30": {
+      "owner": "unknown",
+      "delta": "-00:05:00"
+    },
+    "DMC-LC33": {
+      "owner": "unknown",
+      "delta": "-00:06:00"
+    },
+    "FinePix4700Z": {
+      "owner": "unknown",
+      "delta": "-00:07:00"
+    }
+  },
+  "files": {
+    "MOV00151.MPG": {
+      "owner": "CJ",
+      "absolute_date": "2004-02-28 00:28:04",
+      "note": "absolute target datetime — delta cannot be computed without original timestamp"
+    }
+  },
+  "_warnings": [
+    "line 3: fixed double-minus in: '+8hour -2min --16sec'",
+    "line 4: fixed double-minus in: '+8hour -2min --16sec'",
+    "line 6: absolute_date:2004-02-28 00:28:04"
+  ]
+}

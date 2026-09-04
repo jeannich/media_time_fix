@@ -1,0 +1,44 @@
+{
+  "cameras": {
+    "KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:09:37"
+    },
+    "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom vidéo",
+      "delta": "+00:09:37"
+    },
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP",
+      "delta": "+08:03:47"
+    },
+    "CanonMVI01": {
+      "owner": "JP vidéo",
+      "delta": "+08:03:47"
+    },
+    "DSC-T1": {
+      "owner": "CJ",
+      "delta": "+00:00:00"
+    },
+    "CYBERSHOT": {
+      "owner": "Naho",
+      "delta": "+00:00:00"
+    },
+    "C990Z,D490Z": {
+      "owner": "unknown",
+      "delta": "+00:00:00"
+    },
+    "Canon EOS D30": {
+      "owner": "unknown",
+      "delta": "+00:00:00"
+    },
+    "DMC-LC33": {
+      "owner": "unknown",
+      "delta": "+00:00:00"
+    },
+    "FinePix4700Z": {
+      "owner": "unknown",
+      "delta": "+00:00:00"
+    }
+  }
+}
