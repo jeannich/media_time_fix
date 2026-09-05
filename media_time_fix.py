@@ -230,6 +230,20 @@ def build_spec_chain(
     return chain
 
 
+_PREFIX_RE = re.compile(r'^\d{8}_\d{6}_(.+)$')
+
+
+def canonical_filename(name: str) -> str:
+    """Strip YYYYMMDD_hhmmss_ prefix if present, so spec rules still match renamed files."""
+    m = _PREFIX_RE.match(name)
+    return m.group(1) if m else name
+
+
+def prefixed_filename(dt: datetime, original_name: str) -> str:
+    """Build YYYYMMDD_hhmmss_<original_name>, stripping any existing prefix first."""
+    return dt.strftime("%Y%m%d_%H%M%S_") + canonical_filename(original_name)
+
+
 def find_delta_for_file(
     file_path: Path,
     meta: dict,
@@ -240,7 +254,7 @@ def find_delta_for_file(
     Within each rule type, the most-specific spec (last in chain) wins.
     Priority across types: per-file > glob pattern > camera model.
     """
-    name = file_path.name
+    name = canonical_filename(file_path.name)   # strip date prefix before matching
     model = get_camera_model(meta)
 
     # Search from most-specific to least-specific for each rule type in order
@@ -385,6 +399,7 @@ def cmd_apply(
     dry_run: bool,
     global_spec: dict | None,
     local_spec_name: str,
+    rename: bool = False,
 ):
     files = find_media_files(media_dir, extensions)
     changed = skipped = errors = 0
@@ -401,21 +416,23 @@ def cmd_apply(
         delta_str, source = find_delta_for_file(file_path, meta, chain)
 
         if not delta_str:
-            continue  # no rule matches this file
+            continue
 
-        # If a sidecar already exists, use its original tags (not the already-shifted file).
-        # Re-apply only if the delta actually changed.
+        # Sidecar exists → use stored originals; re-apply only if delta changed.
         original_tags = None
+        original_filename = None
         if sc.exists():
             sidecar_data = json.loads(sc.read_text())
             prev_delta = sidecar_data.get("applied_delta")
+            original_filename = sidecar_data.get("original_filename")
             if prev_delta == delta_str:
                 skipped += 1
-                continue  # already correct, nothing to do
+                continue
             original_tags = sidecar_data.get("original_tags", {})
             dt_raw = next((v for v in original_tags.values() if v), None)
             action = f"Re-apply (was {prev_delta})"
         else:
+            original_filename = canonical_filename(file_path.name)
             _, dt_raw = get_original_date(meta)
             action = "Apply"
 
@@ -431,22 +448,35 @@ def cmd_apply(
             continue
 
         dt_new = dt_orig + parse_delta(delta_str)
-        print(f"{'[DRY-RUN] ' if dry_run else ''}{action} {delta_str:>12s}  {rel}  ({source})")
+
+        new_file_path = file_path
+        if rename:
+            new_name = prefixed_filename(dt_new, original_filename)
+            new_file_path = file_path.parent / new_name
+
+        suffix = f"  →  {new_file_path.name}" if rename and new_file_path != file_path else ""
+        print(f"{'[DRY-RUN] ' if dry_run else ''}{action} {delta_str:>12s}  {rel}  ({source}){suffix}")
         print(f"  {fmt_exif_date(dt_orig)}  →  {fmt_exif_date(dt_new)}")
 
         if not dry_run:
             if original_tags is None:
                 original_tags = {t: meta[t] for t in DATE_READ_TAGS if t in meta}
+            new_dt_str = fmt_exif_date(dt_new)
+            exiftool_write(file_path, {t: new_dt_str for t in DATE_WRITE_TAGS})
+            if rename and new_file_path != file_path:
+                file_path.rename(new_file_path)
+                if sc.exists():
+                    sc.unlink()
+                sc = sidecar_path(new_file_path, media_dir, delta_dir)
             sc.parent.mkdir(parents=True, exist_ok=True)
             sc.write_text(json.dumps({
-                "file": str(rel),
+                "file": str(new_file_path.relative_to(media_dir)),
+                "original_filename": original_filename,
                 "applied_delta": delta_str,
                 "applied_from": source,
                 "original_tags": original_tags,
                 "applied_at": datetime.now().isoformat(),
             }, indent=2))
-            new_dt_str = fmt_exif_date(dt_new)
-            exiftool_write(file_path, {t: new_dt_str for t in DATE_WRITE_TAGS})
 
         changed += 1
 
@@ -474,12 +504,19 @@ def cmd_revert(media_dir: Path, delta_dir: Path, extensions: set, dry_run: bool)
             print(f"SKIP (sidecar has no original tags): {rel}")
             continue
 
+        original_filename = data.get("original_filename")
+        restore_path = file_path.parent / original_filename if original_filename else None
+
         print(f"{'[DRY-RUN] ' if dry_run else ''}Revert  {rel}")
         for tag, val in orig_tags.items():
             print(f"  restore {tag} = {val}")
+        if restore_path and restore_path != file_path:
+            print(f"  rename  {file_path.name}  →  {restore_path.name}")
 
         if not dry_run:
             exiftool_write(file_path, orig_tags)
+            if restore_path and restore_path != file_path:
+                file_path.rename(restore_path)
             sc.unlink()
 
         reverted += 1
@@ -508,6 +545,8 @@ def main():
                    help="Sidecar directory (default: <media_dir>/.time_deltas/)")
     p.add_argument("--ext", default=None, metavar="LIST",
                    help="Comma-separated file extensions to process")
+    p.add_argument("--rename", action="store_true",
+                   help="Prefix filenames with YYYYMMDD_hhmmss_ so Finder sorts by corrected time")
 
     args = p.parse_args()
 
@@ -538,7 +577,7 @@ def main():
                 f"ERROR: no spec found. Provide --global-spec or place a "
                 f"{args.local_spec_name!r} file in the media directory tree."
             )
-        cmd_apply(media_dir, delta_dir, extensions, args.dry_run, global_spec, args.local_spec_name)
+        cmd_apply(media_dir, delta_dir, extensions, args.dry_run, global_spec, args.local_spec_name, rename=args.rename)
 
     elif args.command == "revert":
         cmd_revert(media_dir, delta_dir, extensions, args.dry_run)

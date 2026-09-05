@@ -20,6 +20,8 @@ python3 media_time_fix.py revert <media_dir> --delta-dir <delta_dir>
 - **scan** — show detected cameras, matched rules, and files without a rule. Writes `scan_report.csv`.
 - **apply** — write corrected timestamps to files, save originals in `.timedelta.json` sidecars.
   Running apply again after editing a spec re-applies the new delta from the original — no stacking.
+  Add `--rename` to also prefix filenames with `YYYYMMDD_hhmmss_` so Finder/file managers sort by corrected time.
+  Revert restores original filenames.
 - **revert** — restore original timestamps from sidecars and delete them.
 
 Add `--dry-run` / `-n` to any command to preview without writing.
@@ -52,10 +54,9 @@ Within each type, the deepest (most specific) spec file wins.
 ## Iterative delta tuning
 
 1. Edit the `delta` value in the relevant `delta_spec.json`
-2. Run `apply` — files already processed are re-adjusted from their original timestamps
-3. Browse images in any EXIF-aware viewer
-4. Repeat until timestamps look right
-
+2. Run `apply --rename` — files get corrected timestamps and sortable prefixed names
+3. Browse in Finder (sort by name) using arrow keys
+4. Repeat until timestamps look right — each re-apply adjusts from the original, never stacks
 
 
 
