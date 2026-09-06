@@ -54,7 +54,7 @@ from pathlib import Path
 
 DEFAULT_EXTENSIONS = {
     ".jpg", ".jpeg", ".heic", ".heif", ".png", ".tif", ".tiff",
-    ".mov", ".mp4", ".avi", ".mts", ".m2ts", ".3gp", ".mkv", ".wmv",
+    ".mov", ".mp4", ".mpg", ".mpeg", ".avi", ".mts", ".m2ts", ".3gp", ".mkv", ".wmv",
 }
 
 SIDECAR_SUFFIX = ".timedelta.json"
