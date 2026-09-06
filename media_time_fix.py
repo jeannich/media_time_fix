@@ -99,15 +99,17 @@ def exiftool_read_batch(file_paths: list[Path], chunk_size: int = 200) -> dict[s
     return results
 
 
-def exiftool_write(file_path, tag_values: dict):
-    """Write date tags to a file, overwriting in-place (no exiftool _original backup)."""
+def exiftool_write(file_path, tag_values: dict) -> bool:
+    """Write date tags to a file. Returns True on success, False on failure."""
     args = ["exiftool", "-overwrite_original", "-P"]
     for tag, val in tag_values.items():
         args.append(f"-{tag}={val}")
     args.append(str(file_path))
     r = subprocess.run(args, capture_output=True, text=True)
     if r.returncode != 0:
-        print(f"  exiftool error: {r.stderr.strip()}", file=sys.stderr)
+        print(f"  WARN: exiftool cannot write {file_path.suffix.upper()} metadata: {r.stderr.strip()}", file=sys.stderr)
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -391,6 +393,23 @@ def cmd_scan(
     #         })
     # print(f"Full report: {report_path}  ({len(all_rows)} rows)")
 
+    # Write camera log: files grouped by camera model
+    by_camera: dict[tuple, list] = {}
+    for r in all_rows:
+        key = (r["model"] or "", r["delta"] or "")
+        by_camera.setdefault(key, []).append(r["rel"])
+
+    log_path = delta_dir / "scan_cameras.log"
+    delta_dir.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as fh:
+        for (model, delta), files in sorted(by_camera.items(), key=lambda x: (not x[0][0], x[0][0])):
+            display = model or "(no camera info)"
+            fh.write(f"{display}  [delta: {delta or 'no rule'}]\n")
+            for rel in files:
+                fh.write(f"  {rel}\n")
+            fh.write("\n")
+    print(f"Camera log:  {log_path}")
+
 
 def cmd_apply(
     media_dir: Path,
@@ -462,7 +481,10 @@ def cmd_apply(
             if original_tags is None:
                 original_tags = {t: meta[t] for t in DATE_READ_TAGS if t in meta}
             new_dt_str = fmt_exif_date(dt_new)
-            exiftool_write(file_path, {t: new_dt_str for t in DATE_WRITE_TAGS})
+            ok = exiftool_write(file_path, {t: new_dt_str for t in DATE_WRITE_TAGS})
+            if not ok:
+                errors += 1
+                continue
             if rename and new_file_path != file_path:
                 file_path.rename(new_file_path)
                 if sc.exists():
