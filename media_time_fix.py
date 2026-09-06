@@ -241,20 +241,30 @@ def canonical_filename(name: str) -> str:
     return m.group(1) if m else name
 
 
-def prefixed_filename(dt: datetime, original_name: str) -> str:
-    """Build YYYYMMDD_hhmmss_<original_name>, stripping any existing prefix first."""
-    return dt.strftime("%Y%m%d_%H%M%S_") + canonical_filename(original_name)
+def prefixed_filename(dt: datetime, original_name: str, owner: str = "") -> str:
+    """Build YYYYMMDD_hhmmss_[owner_]<original_name>, stripping any existing prefix first."""
+    base = canonical_filename(original_name)
+    owner_part = f"{owner}_" if owner else ""
+    return dt.strftime("%Y%m%d_%H%M%S_") + owner_part + base
+
+
+def camera_display(model: str, owner: str) -> str:
+    """Format camera label as 'owner (model)', 'model', or '(no camera info)'."""
+    if owner and model:
+        return f"{owner} ({model})"
+    return model or "(no camera info)"
 
 
 def find_delta_for_file(
     file_path: Path,
     meta: dict,
     spec_chain: list[dict],
-) -> tuple[str | None, str | None]:
+) -> tuple[str | None, str | None, str]:
     """
-    Return (delta_str, source_label) using priority cascade.
+    Return (delta_str, source_label, owner) using priority cascade.
     Within each rule type, the most-specific spec (last in chain) wins.
     Priority across types: per-file > glob pattern > camera model.
+    Owner is populated only for camera-matched rules.
     """
     name = canonical_filename(file_path.name)   # strip date prefix before matching
     model = get_camera_model(meta)
@@ -262,20 +272,20 @@ def find_delta_for_file(
     # Search from most-specific to least-specific for each rule type in order
     for spec in reversed(spec_chain):
         if name in spec.get("files", {}):
-            return spec["files"][name]["delta"], f"file override in {_spec_label(spec)}"
+            return spec["files"][name]["delta"], f"file override in {_spec_label(spec)}", ""
 
     for spec in reversed(spec_chain):
         for pat in spec.get("patterns", []):
             if fnmatch.fnmatch(name, pat["pattern"]):
-                return pat["delta"], f"pattern {pat['pattern']!r} in {_spec_label(spec)}"
+                return pat["delta"], f"pattern {pat['pattern']!r} in {_spec_label(spec)}", ""
 
     if model:
         for spec in reversed(spec_chain):
             entry = spec.get("cameras", {}).get(model)
             if entry and entry.get("delta"):
-                return entry["delta"], f"camera {model!r} in {_spec_label(spec)}"
+                return entry["delta"], f"camera {model!r} in {_spec_label(spec)}", entry.get("owner", "")
 
-    return None, None
+    return None, None, ""
 
 
 def _spec_label(spec: dict) -> str:
@@ -327,10 +337,10 @@ def cmd_scan(
             _, dt_val = get_original_date(meta)
             sc = sidecar_path(f, media_dir, delta_dir)
             chain = build_spec_chain(f, media_dir, delta_dir, global_spec, local_spec_name)
-            delta_str, source = find_delta_for_file(f, meta, chain)
+            delta_str, source, owner = find_delta_for_file(f, meta, chain)
             entry = {
                 "dir": dir_rel, "rel": f.relative_to(media_dir),
-                "model": model, "dt": dt_val or "",
+                "model": model, "owner": owner, "dt": dt_val or "",
                 "delta": delta_str or "", "source": source or "",
                 "applied": sc.exists(),
             }
@@ -361,13 +371,13 @@ def cmd_scan(
 
         summary: dict[tuple, int] = {}
         for e in entries:
-            key = (e["model"], e["delta"])          # raw model — "" when absent
+            key = (e["model"], e["owner"], e["delta"])   # raw model — "" when absent
             summary[key] = summary.get(key, 0) + 1
 
-        for (model, delta), count in sorted(summary.items(), key=lambda x: (not x[0][1], x[0][0])):
+        for (model, owner, delta), count in sorted(summary.items(), key=lambda x: (not x[0][2], x[0][0])):
             marker = "  " if delta else "!"
-            display_model = model or "(no camera info)"
-            print(f"    {marker}  {display_model:<50s}  {delta or 'no rule':>12}   {count} file(s)")
+            display = camera_display(model, owner)
+            print(f"    {marker}  {display:<50s}  {delta or 'no rule':>12}   {count} file(s)")
             if not model:
                 for e in entries:
                     if not e["model"]:
@@ -396,14 +406,14 @@ def cmd_scan(
     # Write camera log: files grouped by camera model
     by_camera: dict[tuple, list] = {}
     for r in all_rows:
-        key = (r["model"] or "", r["delta"] or "")
+        key = (r["model"] or "", r["owner"] or "", r["delta"] or "")
         by_camera.setdefault(key, []).append(r["rel"])
 
     log_path = delta_dir / "scan_cameras.log"
     delta_dir.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w", encoding="utf-8") as fh:
-        for (model, delta), files in sorted(by_camera.items(), key=lambda x: (not x[0][0], x[0][0])):
-            display = model or "(no camera info)"
+        for (model, owner, delta), files in sorted(by_camera.items(), key=lambda x: (not x[0][0], x[0][0])):
+            display = camera_display(model, owner)
             fh.write(f"{display}  [delta: {delta or 'no rule'}]\n")
             for rel in files:
                 fh.write(f"  {rel}\n")
@@ -432,7 +442,7 @@ def cmd_apply(
 
         meta = all_meta.get(str(file_path), {})
         chain = build_spec_chain(file_path, media_dir, delta_dir, global_spec, local_spec_name)
-        delta_str, source = find_delta_for_file(file_path, meta, chain)
+        delta_str, source, owner = find_delta_for_file(file_path, meta, chain)
 
         if not delta_str:
             continue
@@ -470,7 +480,7 @@ def cmd_apply(
 
         new_file_path = file_path
         if rename:
-            new_name = prefixed_filename(dt_new, original_filename)
+            new_name = prefixed_filename(dt_new, original_filename, owner)
             new_file_path = file_path.parent / new_name
 
         suffix = f"  →  {new_file_path.name}" if rename and new_file_path != file_path else ""
