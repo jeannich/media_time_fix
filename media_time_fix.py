@@ -87,7 +87,7 @@ def exiftool_read_batch(file_paths: list[Path], chunk_size: int = 200) -> dict[s
     for i in range(0, len(file_paths), chunk_size):
         chunk = file_paths[i:i + chunk_size]
         r = subprocess.run(
-            ["exiftool", "-json", "-s"] + tags + [str(p) for p in chunk],
+            ["exiftool", "-json", "-s", "-m"] + tags + [str(p) for p in chunk],
             capture_output=True, text=True
         )
         if r.returncode != 0 or not r.stdout.strip():
@@ -100,16 +100,29 @@ def exiftool_read_batch(file_paths: list[Path], chunk_size: int = 200) -> dict[s
 
 
 def exiftool_write(file_path, tag_values: dict) -> bool:
-    """Write date tags to a file. Returns True on success, False on failure."""
-    args = ["exiftool", "-overwrite_original", "-P"]
+    """Write date tags to a file. Returns True on success, False on failure.
+    Auto-repairs corrupt InteropIFD data before retrying if the first attempt fails."""
+    args = ["exiftool", "-overwrite_original", "-P", "-m"]
     for tag, val in tag_values.items():
         args.append(f"-{tag}={val}")
     args.append(str(file_path))
     r = subprocess.run(args, capture_output=True, text=True)
-    if r.returncode != 0:
-        print(f"  WARN: exiftool cannot write {file_path.suffix.upper()} metadata: {r.stderr.strip()}", file=sys.stderr)
-        return False
-    return True
+    if r.returncode == 0:
+        return True
+
+    if "InteropIFD" in r.stderr:
+        repair = subprocess.run(
+            ["exiftool", "-F", "-overwrite_original", "-all=", "-tagsfromfile", "@", "-all:all", str(file_path)],
+            capture_output=True, text=True
+        )
+        if repair.returncode == 0:
+            r2 = subprocess.run(args, capture_output=True, text=True)
+            if r2.returncode == 0:
+                print(f"  INFO: repaired corrupt EXIF in {file_path.name}, tags written")
+                return True
+
+    print(f"  WARN: exiftool cannot write {file_path.suffix.upper()} metadata: {r.stderr.strip()}", file=sys.stderr)
+    return False
 
 
 # ---------------------------------------------------------------------------
