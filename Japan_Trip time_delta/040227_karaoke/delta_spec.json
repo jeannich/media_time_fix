@@ -5,7 +5,7 @@
       "delta": "+00:35:47"
     },
     "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
-      "owner": "Thom vidéo",
+      "owner": "Thom",
       "delta": "+00:35:47"
     },
     "Canon IXY DIGITAL 400": {
@@ -13,7 +13,7 @@
       "delta": "+07:57:44"
     },
     "CanonMVI01": {
-      "owner": "JP vidéo",
+      "owner": "JP",
       "delta": "+07:57:44"
     },
     "DSC-T1": {
@@ -40,17 +40,5 @@
       "owner": "unknown",
       "delta": "-00:07:00"
     }
-  },
-  "files": {
-    "MOV00151.MPG": {
-      "owner": "CJ",
-      "absolute_date": "2004-02-28 00:28:04",
-      "note": "absolute target datetime — delta cannot be computed without original timestamp"
-    }
-  },
-  "_warnings": [
-    "line 3: fixed double-minus in: '+8hour -2min --16sec'",
-    "line 4: fixed double-minus in: '+8hour -2min --16sec'",
-    "line 6: absolute_date:2004-02-28 00:28:04"
-  ]
+  }
 }
