@@ -272,12 +272,12 @@ def find_delta_for_file(
     file_path: Path,
     meta: dict,
     spec_chain: list[dict],
-) -> tuple[str | None, str | None, str]:
+) -> tuple[str | None, str | None, str, str]:
     """
-    Return (delta_str, source_label, owner) using priority cascade.
+    Return (delta_str, source_label, owner, effective_model) using priority cascade.
     Within each rule type, the most-specific spec (last in chain) wins.
     Priority across types: per-file > glob pattern > camera model.
-    Owner is populated only for camera-matched rules.
+    Owner and effective_model are populated for camera-matched rules (direct or via pattern "camera" ref).
     """
     name = canonical_filename(file_path.name)   # strip date prefix before matching
     model = get_camera_model(meta)
@@ -285,20 +285,27 @@ def find_delta_for_file(
     # Search from most-specific to least-specific for each rule type in order
     for spec in reversed(spec_chain):
         if name in spec.get("files", {}):
-            return spec["files"][name]["delta"], f"file override in {_spec_label(spec)}", ""
+            return spec["files"][name]["delta"], f"file override in {_spec_label(spec)}", "", ""
 
     for spec in reversed(spec_chain):
         for pat in spec.get("patterns", []):
             if fnmatch.fnmatch(name, pat["pattern"]):
-                return pat["delta"], f"pattern {pat['pattern']!r} in {_spec_label(spec)}", ""
+                if "camera" in pat:
+                    cam_model = pat["camera"]
+                    for s in reversed(spec_chain):
+                        entry = s.get("cameras", {}).get(cam_model)
+                        if entry and entry.get("delta"):
+                            return entry["delta"], f"pattern {pat['pattern']!r} → camera {cam_model!r} in {_spec_label(s)}", entry.get("owner", ""), cam_model
+                    return None, None, "", ""
+                return pat["delta"], f"pattern {pat['pattern']!r} in {_spec_label(spec)}", pat.get("owner", ""), ""
 
     if model:
         for spec in reversed(spec_chain):
             entry = spec.get("cameras", {}).get(model)
             if entry and entry.get("delta"):
-                return entry["delta"], f"camera {model!r} in {_spec_label(spec)}", entry.get("owner", "")
+                return entry["delta"], f"camera {model!r} in {_spec_label(spec)}", entry.get("owner", ""), model
 
-    return None, None, ""
+    return None, None, "", ""
 
 
 def _spec_label(spec: dict) -> str:
@@ -350,10 +357,10 @@ def cmd_scan(
             _, dt_val = get_original_date(meta)
             sc = sidecar_path(f, media_dir, delta_dir)
             chain = build_spec_chain(f, media_dir, delta_dir, global_spec, local_spec_name)
-            delta_str, source, owner = find_delta_for_file(f, meta, chain)
+            delta_str, source, owner, effective_model = find_delta_for_file(f, meta, chain)
             entry = {
                 "dir": dir_rel, "rel": f.relative_to(media_dir),
-                "model": model, "owner": owner, "dt": dt_val or "",
+                "model": effective_model or model, "owner": owner, "dt": dt_val or "",
                 "delta": delta_str or "", "source": source or "",
                 "applied": sc.exists(),
             }
@@ -455,7 +462,7 @@ def cmd_apply(
 
         meta = all_meta.get(str(file_path), {})
         chain = build_spec_chain(file_path, media_dir, delta_dir, global_spec, local_spec_name)
-        delta_str, source, owner = find_delta_for_file(file_path, meta, chain)
+        delta_str, source, owner, _ = find_delta_for_file(file_path, meta, chain)
 
         if not delta_str:
             continue
