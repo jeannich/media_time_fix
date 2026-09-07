@@ -17,6 +17,10 @@
       "owner": "JP",
       "delta": "+07:58:59",
       "delta explanation": "+8h -1min1s"
+    },
+    "DSC-T1": {
+      "owner": "CJ",
+      "delta": "-00:05:45"
     }
   }
 }

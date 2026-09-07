@@ -1,7 +1,4 @@
 {
-  "patterns": [
-    { "pattern": "MOV00151.MPG", "camera": "DSC-T1" }
-  ],
   "cameras": {
     "KODAK CX6330 ZOOM DIGITAL CAMERA": {
       "owner": "Thom",
