@@ -102,8 +102,6 @@ mediainfo "JapanTrip/040719_HanabiOsakako/P1000381.MOV"
 #BRICO commands:
 exiftool -overwrite_original -DateTimeOriginal="2004:02:14 03:44:11" -CreateDate="2004:02:14 03:44:11" -Make="Canon" -Model="Canon IXY DIGITAL 400" '/home/chris/Desktop/japan_trip/JapanTrip/040226_Ikoma/PhotosJP 067.jpg'
 
-exiftool -overwrite_original -InteropIndex=R98 '/home/chris/Desktop/japan_trip/JapanTrip/040226_Ikoma/PhotosJP 047.jpg'
-
 
 
 exiftool -overwrite_original -DateTimeOriginal="2004:02:28 00:28:04" -CreateDate="2004:02:28 00:28:04" -Make="SONY" -Model="DSC-T1" '/home/chris/Desktop/japan_trip/JapanTrip/040227_karaoke/MOV00151.mp4'
