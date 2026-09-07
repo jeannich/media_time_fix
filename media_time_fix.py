@@ -58,6 +58,7 @@ DEFAULT_EXTENSIONS = {
 }
 
 SIDECAR_SUFFIX = ".timedelta.json"
+SIDECAR_SUBDIR = "_restore"
 LOCAL_SPEC_NAME = "delta_spec.json"
 
 # exiftool date tags to read/write, in priority order
@@ -172,7 +173,7 @@ def fmt_delta(td: timedelta) -> str:
 
 def sidecar_path(file_path: Path, media_dir: Path, delta_dir: Path) -> Path:
     rel = file_path.relative_to(media_dir)
-    return delta_dir / (str(rel) + SIDECAR_SUFFIX)
+    return delta_dir / rel.parent / SIDECAR_SUBDIR / (rel.name + SIDECAR_SUFFIX)
 
 
 def get_camera_model(meta: dict) -> str:
@@ -536,7 +537,7 @@ def cmd_apply(
 
 
 def cmd_revert(media_dir: Path, delta_dir: Path, extensions: set, dry_run: bool):
-    sidecars = list(delta_dir.rglob(f"*{SIDECAR_SUFFIX}"))
+    sidecars = list(delta_dir.rglob(f"{SIDECAR_SUBDIR}/*{SIDECAR_SUFFIX}"))
     if not sidecars:
         sys.exit(f"No sidecar files found in {delta_dir}")
 
