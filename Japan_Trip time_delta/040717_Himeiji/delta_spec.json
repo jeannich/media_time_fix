@@ -1,0 +1,19 @@
+{
+  "cameras": {
+    "DSC-T1": {
+      "owner": "CJ",
+      "delta": "-00:03:18"
+    },
+
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP",
+      "delta": "+07:54:00",
+      "delta explanation": "+8h -1min1s  +1min32       -6min30"
+    },
+    "CanonMVI01": {
+      "owner": "JP",
+      "delta": "+07:54:00",
+      "delta explanation": "+8h -1min1s  +1min32       -6min30"
+    }
+  }
+}

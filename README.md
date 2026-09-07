@@ -112,4 +112,21 @@ exiftool -overwrite_original -DateTimeOriginal="2004:02:28 00:28:04" -CreateDate
 ffmpeg -i  /home/chris/Desktop/japan_trip/JapanTrip/040502_GoldenWeek/MOV00309.MPG  -c copy   /home/chris/Desktop/japan_trip/JapanTrip/040502_GoldenWeek/MOV00309.mp4
 
 exiftool -overwrite_original -DateTimeOriginal="2004:05:03 08:09:14+02:00" -CreateDate="2004:05:03 08:09:14+02:00" -Make="SONY" -Model="DSC-T1" /home/chris/Desktop/japan_trip/JapanTrip/040502_GoldenWeek/MOV00309.mp4
+
+
+
+
+
+source_video="$HOME/Downloads/japan_trip/photos/040717_Hanabi/BouquetFinal.mpg"
+ffmpeg -i  "$source_video"  -c copy   "$source_video".mp4
+
+exiftool -overwrite_original \
+  -DateTimeOriginal-="0:00:00 07:00:00" \
+  -CreateDate-="0:00:00 07:00:00" \
+  "$source_video" 2>&1
+echo "--- After ---"
+exiftool -s3 -DateTimeOriginal "$file"
+
+
+exiftool -overwrite_original -Make="Canon" -Model="CanonMVI01" '/home/chris/Desktop/japan_trip/JapanTrip/040226_Ikoma/PhotosJP 067.jpg'
 ```
