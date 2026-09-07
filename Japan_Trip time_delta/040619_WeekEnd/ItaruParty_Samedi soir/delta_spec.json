@@ -1,0 +1,27 @@
+{
+  "cameras": {
+    "KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:05:38"
+    },
+    "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:05:38"
+    },
+    "DSC-T1": {
+      "owner": "CJ",
+      "delta": "-00:03:18"
+    },
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP",
+      "delta": "+08:00:31",
+      "delta explanation": "+8h -1min1s  +1min32"
+    },
+    "CanonMVI01": {
+      "owner": "JP",
+      "delta": "+08:00:31",
+      "delta explanation": "+8h -1min1s  +1min32"
+    }
+  }
+}
+
