@@ -1,0 +1,33 @@
+{
+  "cameras": {
+    "KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:05:38"
+    },
+    "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:05:38"
+    },
+    "DSC-T1": {
+      "owner": "CJ",
+      "delta": "-00:03:18"
+    },
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP",
+      "delta": "-00:03:35"
+    },
+    "CanonMVI01": {
+      "owner": "JP",
+      "delta": "-00:03:35"
+    },
+    "CYBERSHOT": {
+      "owner": "Naho",
+      "delta": "+1242 04:39:20",
+      "delta explanation": "1242 is the number of days to move from 2001:02:21  to 2004:07:17"
+    },
+    "DMC-LC33": {
+      "owner": "ptit-guy-1",
+      "delta": "+00:03:35"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "cameras": {
+    "KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:05:38"
+    },
+    "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
+      "owner": "Thom",
+      "delta": "+00:05:38"
+    },
+    "DSC-T1": {
+      "owner": "Pedro",
+      "delta": "-00:03:18",
+      "comment": "CJ pas là, Pedro a pris les photos"
+    },
+
+
+    "Canon IXY DIGITAL 400": {
+      "owner": "JP",
+      "delta": "+07:54:00",
+      "delta explanation": "+8h -1min1s  +1min32       -6min30"
+    },
+    "CanonMVI01": {
+      "owner": "JP",
+      "delta": "+07:54:00",
+      "delta explanation": "+8h -1min1s  +1min32       -6min30"
+    },
+
+
+    "CYBERSHOT": {
+      "owner": "Naho",
+      "delta": "+00:03:00"
+    },
+
+    "DMC-LC33": {
+      "owner": "ptit-guy-1",
+      "delta": "+00:03:35"
+    },
+
+
+    "C990Z,D490Z": {
+      "owner": "perso_1",
+      "delta": "+01:00:00"
+    },
+    "Canon EOS D30": {
+      "owner": "perso_2",
+      "delta": "+00:00:00"
+    },
+    "FinePix4700Z": {
+      "owner": "perso_3",
+      "delta": "+1673 18:24:00",
+      "delta explanation": "camera date was 2000-01-07, correct date is 2004-08-07, +1674 days -5h36min"
+    }
+
+  }
+}
