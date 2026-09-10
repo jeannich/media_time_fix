@@ -2,11 +2,13 @@
   "cameras": {
     "KODAK CX6330 ZOOM DIGITAL CAMERA": {
       "owner": "Thom",
-      "delta": "+00:05:38"
+      "delta": "+550 08:14:39",
+      "delta comment": "was +550 08:02:29 on some other photos"
     },
     "EASTMAN KODAK COMPANY  KODAK CX6330 ZOOM DIGITAL CAMERA": {
       "owner": "Thom",
-      "delta": "+00:05:38"
+      "delta": "+550 08:14:39",
+      "delta comment": "was +550 08:02:29 on some other photos"
     }
   }
 }
