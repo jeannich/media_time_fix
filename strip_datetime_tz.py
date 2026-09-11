@@ -90,12 +90,15 @@ def check_file(entry: dict) -> tuple[str | None, str | None]:
 
 
 def fix_file(filepath: str, stripped_dt: str, dry_run: bool) -> bool:
+    # Exiftool always re-appends the local system TZ when writing to UserData:DateTimeOriginal,
+    # regardless of the group qualifier used. Deleting it is the only reliable fix.
+    # XMP-exif:DateTimeOriginal (already clean, no TZ) remains as the canonical DateTimeOriginal.
     if dry_run:
-        print(f"  [DRY-RUN] would set UserData:DateTimeOriginal → {stripped_dt}")
+        print(f"  [DRY-RUN] would delete UserData:DateTimeOriginal (was: {stripped_dt}+TZ)")
         return True
     r = subprocess.run(
         ["exiftool", "-overwrite_original", "-m",
-         f"-UserData:DateTimeOriginal={stripped_dt}", filepath],
+         "-UserData:DateTimeOriginal=", filepath],
         capture_output=True, text=True,
     )
     if r.returncode != 0:

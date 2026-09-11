@@ -65,6 +65,13 @@ LOCAL_SPEC_NAME = "delta_spec.json"
 DATE_READ_TAGS = ["DateTimeOriginal", "CreateDate", "MediaCreateDate", "TrackCreateDate"]
 DATE_WRITE_TAGS = ["DateTimeOriginal", "CreateDate", "MediaCreateDate", "TrackCreateDate"]
 
+# For video files, writing the composite DateTimeOriginal tag causes exiftool to
+# re-create UserData:DateTimeOriginal with the local system timezone appended (+HH:MM).
+# Instead we write to the XMP group directly (no TZ side-effect) and delete the
+# QuickTime UserData tag so no stale TZ-offset value remains.
+VIDEO_EXTENSIONS = {".mov", ".mp4", ".mpg", ".mpeg", ".avi", ".mts", ".m2ts", ".3gp", ".mkv", ".wmv"}
+DATE_WRITE_TAGS_VIDEO = ["XMP-exif:DateTimeOriginal", "CreateDate", "MediaCreateDate", "TrackCreateDate"]
+
 
 # ---------------------------------------------------------------------------
 # exiftool helpers
@@ -100,12 +107,15 @@ def exiftool_read_batch(file_paths: list[Path], chunk_size: int = 200) -> dict[s
     return results
 
 
-def exiftool_write(file_path, tag_values: dict) -> bool:
+def exiftool_write(file_path, tag_values: dict, delete_tags: list[str] | None = None) -> bool:
     """Write date tags to a file. Returns True on success, False on failure.
+    delete_tags: tag names to delete (set to empty) in the same call.
     Auto-repairs corrupt InteropIFD data before retrying if the first attempt fails."""
     args = ["exiftool", "-overwrite_original", "-P", "-m"]
     for tag, val in tag_values.items():
         args.append(f"-{tag}={val}")
+    for tag in (delete_tags or []):
+        args.append(f"-{tag}=")
     args.append(str(file_path))
     r = subprocess.run(args, capture_output=True, text=True)
     if r.returncode == 0:
@@ -512,7 +522,10 @@ def cmd_apply(
             if original_tags is None:
                 original_tags = {t: meta[t] for t in DATE_READ_TAGS if t in meta}
             new_dt_str = fmt_exif_date(dt_new)
-            ok = exiftool_write(file_path, {t: new_dt_str for t in DATE_WRITE_TAGS})
+            is_video = file_path.suffix.lower() in VIDEO_EXTENSIONS
+            write_tags = DATE_WRITE_TAGS_VIDEO if is_video else DATE_WRITE_TAGS
+            delete_tags = ["UserData:DateTimeOriginal"] if is_video else None
+            ok = exiftool_write(file_path, {t: new_dt_str for t in write_tags}, delete_tags=delete_tags)
             if not ok:
                 errors += 1
                 continue
