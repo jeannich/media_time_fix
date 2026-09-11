@@ -38,6 +38,7 @@ def exiftool_write_xmp(path: Path, dt: str, dry_run: bool) -> bool:
         ["exiftool", "-overwrite_original", "-m",
          f"-DateTimeOriginal={dt}",
          f"-CreateDate={dt}",
+         f"-XMP-photoshop:DateCreated={dt}",
          str(path)],
         capture_output=True, text=True,
     )
@@ -81,6 +82,11 @@ def main():
         rel = xmp.relative_to(media_dir)
 
         if xmp.exists():
+            # Safety: only overwrite if the sidecar actually contains a bad date
+            if "1957" not in xmp.read_text(errors="replace"):
+                print(f"SKIP (date looks correct already): {rel}")
+                skipped += 1
+                continue
             print(f"{'[DRY-RUN] ' if args.dry_run else ''}UPDATE  {rel}  →  {dt}")
             ok = exiftool_write_xmp(xmp, dt, args.dry_run)
             if ok:
